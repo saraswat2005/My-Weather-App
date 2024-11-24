@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
+        body{
+            background: black;
+           
+        }
+        .weather-app{
+            width: 90%;
+            max-width: 430px;
+            background-image: linear-gradient(135deg, #00feba, #5b548a);
+            color: aliceblue;
+            margin: 100px auto 0;
+            padding: 40px 35px;
+            border-radius: 20px;
+            text-align: center;
+        }
+        .search{
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        input{
+            height: 3rem;
+            width: 100%;
+            border: none;
+            border-radius: 25px;
+            outline: none;
+            font-size: 18px;
+            margin-right: 10px;
+            padding: 10px;
+            background-color: antiquewhite;
+        }
+        button{
+            
+            outline: none;
+            border: none;
+            background-color: antiquewhite;
+            border-radius: 50%;
+            height: 50px;
+        }
+        .search-icon{
+            height: 20px;
+            width: 20px;
+        }
+        .curr_weather{
+            align-items: center;
+            justify-content: center;
+        }
+        .curr_w_temp{
+            font-size: 70px;
+            font-weight: 700;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .curr_country{
+            font-size: 40px;
+            font-weight: 500;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        .details{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .humidity,.wind{
+            font-size: 30px;
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="weather-app">
+        <div class="search" >
+            <input type="text" placeholder="Enter city name" class="city">
+            <button><img src="search.png" alt="" id="search-icon"></button>
+        </div>
+        <div class="curr_weather">
+            <div class="curr_w_icon"><img src="rain.png" alt="" height="170px" width="150px"></div>
+            <div class="curr_w_temp">22°C</div>
+            <div class="curr_country">New York</div>
+            <div class="details">
+                <div class="col">
+                    <img src="humidity.png" alt="" height="60px" width="40px">
+                    <div>
+                        <p class="humidity">50%</p>
+                        <p>humidity</p>
+                    </div>
+                </div>
+                <div class="col">
+                    <img src="wind.png" alt="" height="60px" width="40px">
+                    <div>
+                        <p class="wind">15km/hr</p>
+                        <p>wind speed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+<script>
+   var cityInput = document.querySelector(".city");
+var searchButton = document.querySelector("#search-icon");
+var curr_w_icon = document.querySelector(".curr_w_icon img");
+var curr_w_temp = document.querySelector(".curr_w_temp");
+var curr_country = document.querySelector(".curr_country");
+var humidity = document.querySelector(".humidity");
+var wind = document.querySelector(".wind");
+
+const apiKey = "6507e6ca77edefdcaf510b036f1fb6d2";
+const URL = "https://api.openweathermap.org/data/2.5/weather?units=metric&q=";
+const coordURL = "https://api.openweathermap.org/data/2.5/weather?units=metric&lat=";
+
+async function checkWeatherByCity(city) {
+    const response = await fetch(URL + city + `&appid=${apiKey}`);
+    if (response.status === 404) {
+        alert("City not found. Please enter a valid city name.");
+        return;
+    }
+    
+    var data = await response.json();
+    updateWeatherDisplay(data);
+}
+
+async function checkWeatherByCoords(lat, lon) {
+    const response = await fetch(coordURL + lat + `&lon=${lon}&appid=${apiKey}`);
+    var data = await response.json();
+    updateWeatherDisplay(data);
+}
+
+function updateWeatherDisplay(data) {
+    curr_w_temp.innerHTML = Math.round(data.main.temp) + "°C";
+    curr_country.innerHTML = data.name;
+    humidity.innerHTML = data.main.humidity + "%";
+    wind.innerHTML = data.wind.speed + "km/hr";
+    console.log(data);
+
+    if (data.weather[0].main === "Clouds") {
+        curr_w_icon.src = "clouds.png";
+    } else if (data.weather[0].main === "Clear") {
+        curr_w_icon.src = "clear.png";
+    } else if (data.weather[0].main === "Drizzle") {
+        curr_w_icon.src = "drizzle.png";
+    } else if (data.weather[0].main === "Rain") {
+        curr_w_icon.src = "rain.png";
+    } else if (data.weather[0].main === "Snow") {
+        curr_w_icon.src = "snow.png";
+    } else if (data.weather[0].main === "Mist") {
+        curr_w_icon.src = "mist.png";
+    }
+
+    document.querySelector(".curr_weather").style.display = "block";
+}
+
+function getCurrentLocationWeather() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            let lat = position.coords.latitude;
+            let lon = position.coords.longitude;
+            checkWeatherByCoords(lat, lon);
+        }, () => {
+            alert("Unable to retrieve your location. Please search for a city.");
+        });
+    } else {
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+searchButton.addEventListener('click', function () {
+    checkWeatherByCity(cityInput.value);
+});
+
+// Show weather for current location on startup
+window.onload = getCurrentLocationWeather;
+
+    
+</script>
+</html>
